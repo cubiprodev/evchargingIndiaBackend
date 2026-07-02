@@ -31,6 +31,11 @@ export enum BookingStatus {
   REJECTED = 'rejected',
 }
 
+export enum BookingRequestType {
+  DIRECT = 'direct',
+  BROADCAST = 'broadcast',
+}
+
 export enum PaymentStatus {
   PENDING = 'pending',
   COMPLETED = 'completed',

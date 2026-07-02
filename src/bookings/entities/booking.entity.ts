@@ -8,7 +8,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { BookingStatus } from '../../common/constants';
+import { BookingStatus, BookingRequestType } from '../../common/constants';
 import { User } from '../../users/entities/user.entity';
 import { Charger } from '../../chargers/entities/charger.entity';
 import { Payment } from '../../payments/entities/payment.entity';
@@ -46,6 +46,18 @@ export class Booking {
 
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;
+
+  @Column({ type: 'enum', enum: BookingRequestType, default: BookingRequestType.DIRECT })
+  requestType: BookingRequestType;
+
+  @Column({ nullable: true })
+  requestGroupId: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  driverLatitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  driverLongitude: number;
 
   @Column({ type: 'decimal', precision: 8, scale: 2, nullable: true })
   estimatedKwh: number;

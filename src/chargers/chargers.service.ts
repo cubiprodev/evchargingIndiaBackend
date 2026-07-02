@@ -126,6 +126,12 @@ export class ChargersService {
     return this.chargersRepository.save(charger);
   }
 
+  async updateStatus(id: string, status: ChargerStatus): Promise<Charger> {
+    const charger = await this.findById(id);
+    charger.status = status;
+    return this.chargersRepository.save(charger);
+  }
+
   async findAll(): Promise<Charger[]> {
     return this.chargersRepository.find({
       relations: { owner: true },

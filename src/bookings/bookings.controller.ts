@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
-import { CreateBookingDto, UpdateBookingStatusDto } from './dto/booking.dto';
+import {
+  CreateBookingDto,
+  CreateBookingRequestDto,
+  UpdateBookingStatusDto,
+} from './dto/booking.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators';
@@ -33,6 +37,40 @@ export class BookingsController {
     return this.bookingsService.create(req.user.id, dto);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @Post('request')
+  createRequest(
+    @Request() req: { user: { id: string } },
+    @Body() dto: CreateBookingRequestDto,
+  ) {
+    return this.bookingsService.createRequest(req.user.id, dto);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @Get('request/active')
+  activeRequest(@Request() req: { user: { id: string } }) {
+    return this.bookingsService.findActiveRequest(req.user.id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @Post('request/:groupId/cancel')
+  cancelRequest(
+    @Request() req: { user: { id: string } },
+    @Param('groupId') groupId: string,
+  ) {
+    return this.bookingsService.cancelRequest(req.user.id, groupId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.OWNER)
+  @Get('owner/incoming')
+  incomingRequests(@Request() req: { user: { id: string } }) {
+    return this.bookingsService.findIncomingByOwner(req.user.id);
+  }
+
   @Get('my')
   myBookings(@Request() req: { user: { id: string; role: string } }) {
     if (req.user.role === UserRole.OWNER) {
@@ -44,6 +82,26 @@ export class BookingsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingsService.findById(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.OWNER)
+  @Post(':id/accept')
+  accept(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.bookingsService.acceptBooking(id, req.user.id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.OWNER)
+  @Post(':id/reject')
+  reject(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.bookingsService.rejectBooking(id, req.user.id);
   }
 
   @Patch(':id/status')
