@@ -25,6 +25,13 @@ import {
 const ACTIVE_BOOKING_STATUSES = [
   BookingStatus.PENDING,
   BookingStatus.CONFIRMED,
+  BookingStatus.AT_STATION,
+  BookingStatus.IN_PROGRESS,
+];
+
+const SESSION_STATUSES = [
+  BookingStatus.CONFIRMED,
+  BookingStatus.AT_STATION,
   BookingStatus.IN_PROGRESS,
 ];
 
@@ -63,7 +70,11 @@ export class BookingsService {
     const existingOnCharger = await this.bookingsRepository.findOne({
       where: {
         chargerId,
-        status: In([BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS]),
+        status: In([
+          BookingStatus.CONFIRMED,
+          BookingStatus.AT_STATION,
+          BookingStatus.IN_PROGRESS,
+        ]),
       },
     });
     if (existingOnCharger) {
@@ -417,7 +428,11 @@ export class BookingsService {
       const otherActive = await this.bookingsRepository.findOne({
         where: {
           chargerId: booking.chargerId,
-          status: In([BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS]),
+          status: In([
+            BookingStatus.CONFIRMED,
+            BookingStatus.AT_STATION,
+            BookingStatus.IN_PROGRESS,
+          ]),
           id: Not(booking.id),
         },
       });
@@ -429,6 +444,80 @@ export class BookingsService {
       }
     }
 
+    return this.bookingsRepository.save(booking);
+  }
+
+  async findActiveSession(driverId: string): Promise<Booking | null> {
+    return this.bookingsRepository.findOne({
+      where: {
+        driverId,
+        status: In(SESSION_STATUSES),
+      },
+      relations: { charger: { owner: true } },
+      order: { updatedAt: 'DESC' },
+    });
+  }
+
+  async markArrived(bookingId: string, driverId: string): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (booking.driverId !== driverId) {
+      throw new ForbiddenException('Not authorized');
+    }
+    if (booking.status !== BookingStatus.CONFIRMED) {
+      throw new BadRequestException('Booking must be accepted before marking arrival');
+    }
+
+    booking.status = BookingStatus.AT_STATION;
+    booking.arrivedAt = new Date();
+    return this.bookingsRepository.save(booking);
+  }
+
+  async startCharging(bookingId: string, driverId: string): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (booking.driverId !== driverId) {
+      throw new ForbiddenException('Not authorized');
+    }
+    if (booking.status !== BookingStatus.AT_STATION) {
+      throw new BadRequestException('Mark arrival at station before starting charging');
+    }
+
+    booking.status = BookingStatus.IN_PROGRESS;
+    booking.actualStart = new Date();
+    await this.chargersService.updateStatus(
+      booking.chargerId,
+      ChargerStatus.OCCUPIED,
+    );
+    return this.bookingsRepository.save(booking);
+  }
+
+  async endCharging(
+    bookingId: string,
+    driverId: string,
+    actualKwh?: number,
+  ): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (booking.driverId !== driverId) {
+      throw new ForbiddenException('Not authorized');
+    }
+    if (booking.status !== BookingStatus.IN_PROGRESS) {
+      throw new BadRequestException('Charging session is not in progress');
+    }
+
+    const kwh = actualKwh ?? Number(booking.estimatedKwh) ?? 30;
+    const pricePerKwh = Number(booking.charger.pricePerKwh);
+    const amounts = this.buildAmounts(kwh, pricePerKwh);
+
+    booking.status = BookingStatus.COMPLETED;
+    booking.actualEnd = new Date();
+    booking.actualKwh = kwh;
+    booking.totalAmount = amounts.totalAmount;
+    booking.platformFee = amounts.platformFee;
+    booking.ownerEarnings = amounts.ownerEarnings;
+
+    await this.chargersService.updateStatus(
+      booking.chargerId,
+      ChargerStatus.AVAILABLE,
+    );
     return this.bookingsRepository.save(booking);
   }
 }

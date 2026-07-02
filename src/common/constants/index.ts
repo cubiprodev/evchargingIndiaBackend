@@ -25,6 +25,7 @@ export enum ChargerStatus {
 export enum BookingStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
+  AT_STATION = 'at_station',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',

@@ -42,6 +42,9 @@ export class Booking {
   actualStart: Date;
 
   @Column({ type: 'timestamp', nullable: true })
+  arrivedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
   actualEnd: Date;
 
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })

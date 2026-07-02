@@ -70,6 +70,13 @@ export class UpdateBookingStatusDto {
   actualKwh?: number;
 }
 
+export class EndChargingDto {
+  @IsOptional()
+  @IsNumber()
+  @Min(0.1)
+  actualKwh?: number;
+}
+
 export class CreatePaymentDto {
   @IsString()
   @IsNotEmpty()
