@@ -15,7 +15,7 @@ async function seed() {
   const dataSource = new DataSource({
     type: 'postgres',
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
+    port: parseInt(process.env.DB_PORT || '5433', 10),
     username: process.env.DB_USERNAME || 'evconnect',
     password: process.env.DB_PASSWORD || 'evconnect123',
     database: process.env.DB_NAME || 'evconnect_india',
@@ -30,10 +30,11 @@ async function seed() {
   const chargerRepo = dataSource.getRepository(Charger);
 
   // Create sample owner
-  let owner = await userRepo.findOne({ where: { phone: '9876543210' } });
+  let owner = await userRepo.findOne({ where: { email: 'owner@evconnect.dev' } });
   if (!owner) {
     owner = userRepo.create({
       phone: '9876543210',
+      email: 'owner@evconnect.dev',
       name: 'Rajesh Kumar',
       role: UserRole.OWNER,
       isVerified: true,
@@ -42,10 +43,11 @@ async function seed() {
   }
 
   // Create sample driver
-  let driver = await userRepo.findOne({ where: { phone: '9876543211' } });
+  let driver = await userRepo.findOne({ where: { email: 'driver@evconnect.dev' } });
   if (!driver) {
     driver = userRepo.create({
       phone: '9876543211',
+      email: 'driver@evconnect.dev',
       name: 'Priya Sharma',
       role: UserRole.DRIVER,
       isVerified: true,

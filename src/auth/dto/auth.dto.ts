@@ -1,18 +1,43 @@
-import { IsString, IsNotEmpty, Matches, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+  IsEnum,
+  MinLength,
+} from 'class-validator';
 import { UserRole } from '../../common/constants';
 
-export class SendOtpDto {
+export class RegisterDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  password: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+}
+
+export class LoginDto {
+  @IsEmail()
+  email: string;
+
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[6-9]\d{9}$/, { message: 'Invalid Indian phone number' })
-  phone: string;
+  password: string;
+}
+
+export class SendOtpDto {
+  @IsEmail()
+  email: string;
 }
 
 export class VerifyOtpDto {
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^[6-9]\d{9}$/, { message: 'Invalid Indian phone number' })
-  phone: string;
+  @IsEmail()
+  email: string;
 
   @IsString()
   @IsNotEmpty()
@@ -23,8 +48,20 @@ export class VerifyOtpDto {
   role?: UserRole;
 }
 
-export class RefreshTokenDto {
+export class ForgotPasswordDto {
+  @IsEmail()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  email: string;
+
   @IsString()
   @IsNotEmpty()
-  refreshToken: string;
+  otp: string;
+
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  password: string;
 }
