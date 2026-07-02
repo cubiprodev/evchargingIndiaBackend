@@ -21,10 +21,16 @@ export class ChargersService {
   ) {}
 
   async create(ownerId: string, dto: CreateChargerDto): Promise<Charger> {
+    const autoVerify =
+      process.env.AUTO_VERIFY_CHARGERS === 'true' ||
+      process.env.NODE_ENV === 'development';
+
     const charger = this.chargersRepository.create({
       ...dto,
       ownerId,
-      status: ChargerStatus.PENDING_VERIFICATION,
+      status: autoVerify
+        ? ChargerStatus.AVAILABLE
+        : ChargerStatus.PENDING_VERIFICATION,
     });
     return this.chargersRepository.save(charger);
   }
