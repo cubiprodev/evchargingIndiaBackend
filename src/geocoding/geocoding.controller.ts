@@ -10,7 +10,7 @@ export class GeocodingController {
 
   @Public()
   @Get('reverse')
-  reverse(@Query('lat') lat: string, @Query('lng') lng: string) {
+  async reverse(@Query('lat') lat: string, @Query('lng') lng: string) {
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lng);
 
@@ -18,6 +18,10 @@ export class GeocodingController {
       throw new BadRequestException('Valid lat and lng are required');
     }
 
-    return this.geocodingService.reverseGeocode(latitude, longitude);
+    try {
+      return await this.geocodingService.reverseGeocode(latitude, longitude);
+    } catch {
+      throw new BadRequestException('Could not resolve address for this location');
+    }
   }
 }
