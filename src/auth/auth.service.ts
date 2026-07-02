@@ -15,7 +15,7 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
 } from './dto/auth.dto';
-import { UserRole } from '../common/constants';
+import { UserRole, KycStatus } from '../common/constants';
 import { User } from '../users/entities/user.entity';
 import { EmailService } from '../email/email.service';
 
@@ -63,6 +63,10 @@ export class AuthService {
       name: user.name,
       role: user.role,
       walletBalance: user.walletBalance,
+      kycStatus: user.kycStatus ?? KycStatus.NONE,
+      aadhaarLast4: user.aadhaarLast4,
+      aadhaarName: user.aadhaarName,
+      kycVerifiedAt: user.kycVerifiedAt,
     };
   }
 
@@ -213,6 +217,20 @@ export class AuthService {
     if (!Object.values(UserRole).includes(role)) {
       throw new BadRequestException('Invalid role');
     }
-    return this.usersService.update(userId, { role });
+
+    if (role === UserRole.OWNER) {
+      const user = await this.usersService.findById(userId);
+      if (!user || user.kycStatus !== KycStatus.VERIFIED) {
+        throw new BadRequestException({
+          message:
+            'Aadhaar KYC is required before you can operate as a charging station owner',
+          requiresKyc: true,
+          kycStatus: user?.kycStatus ?? KycStatus.NONE,
+        });
+      }
+    }
+
+    const updated = await this.usersService.update(userId, { role });
+    return this.toAuthUser(updated);
   }
 }

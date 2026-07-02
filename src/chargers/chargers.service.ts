@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,16 +12,28 @@ import {
   UpdateChargerDto,
   SearchChargersDto,
 } from './dto/charger.dto';
-import { ChargerStatus } from '../common/constants';
+import { ChargerStatus, KycStatus } from '../common/constants';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ChargersService {
   constructor(
     @InjectRepository(Charger)
     private chargersRepository: Repository<Charger>,
+    private usersService: UsersService,
   ) {}
 
   async create(ownerId: string, dto: CreateChargerDto): Promise<Charger> {
+    const owner = await this.usersService.findById(ownerId);
+    if (!owner || owner.kycStatus !== KycStatus.VERIFIED) {
+      throw new BadRequestException({
+        message:
+          'Aadhaar KYC is required before registering a charging station',
+        requiresKyc: true,
+        kycStatus: owner?.kycStatus ?? KycStatus.NONE,
+      });
+    }
+
     const autoVerify =
       process.env.AUTO_VERIFY_CHARGERS === 'true' ||
       process.env.NODE_ENV === 'development';

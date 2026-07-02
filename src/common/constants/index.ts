@@ -43,3 +43,10 @@ export enum PaymentMethod {
   CARD = 'card',
   WALLET = 'wallet',
 }
+
+export enum KycStatus {
+  NONE = 'none',
+  PENDING = 'pending',
+  VERIFIED = 'verified',
+  REJECTED = 'rejected',
+}

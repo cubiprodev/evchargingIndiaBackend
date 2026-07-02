@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { UserRole } from '../../common/constants';
+import { UserRole, KycStatus } from '../../common/constants';
 import { Charger } from '../../chargers/entities/charger.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 import { Review } from '../../reviews/entities/review.entity';
@@ -33,6 +33,21 @@ export class User {
 
   @Column({ default: false })
   isVerified: boolean;
+
+  @Column({ type: 'enum', enum: KycStatus, default: KycStatus.NONE })
+  kycStatus: KycStatus;
+
+  @Column({ nullable: true, select: false })
+  aadhaarHash: string;
+
+  @Column({ nullable: true })
+  aadhaarLast4: string;
+
+  @Column({ nullable: true })
+  aadhaarName: string;
+
+  @Column({ nullable: true })
+  kycVerifiedAt: Date;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   walletBalance: number;

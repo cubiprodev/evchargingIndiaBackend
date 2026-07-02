@@ -12,6 +12,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { AdminModule } from './admin/admin.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
+import { KycModule } from './kyc/kyc.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { User } from './users/entities/user.entity';
 import { Charger } from './chargers/entities/charger.entity';
@@ -48,6 +49,7 @@ import { Review } from './reviews/entities/review.entity';
     ReviewsModule,
     AdminModule,
     GeocodingModule,
+    KycModule,
   ],
   providers: [
     {
