@@ -29,17 +29,21 @@ import { Review } from './reviews/entities/review.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('database.host'),
-        port: configService.get('database.port'),
-        username: configService.get('database.username'),
-        password: configService.get('database.password'),
-        database: configService.get('database.database'),
-        entities: [User, Charger, Booking, Payment, Review],
-        synchronize: process.env.NODE_ENV !== 'production',
-        logging: process.env.NODE_ENV === 'development',
-      }),
+      useFactory: (configService: ConfigService) => {
+        const db = configService.get('database');
+        return {
+          type: 'postgres' as const,
+          host: db.host,
+          port: db.port,
+          username: db.username,
+          password: db.password,
+          database: db.database,
+          ssl: db.ssl,
+          entities: [User, Charger, Booking, Payment, Review],
+          synchronize: process.env.NODE_ENV !== 'production',
+          logging: process.env.NODE_ENV === 'development',
+        };
+      },
     }),
     AuthModule,
     UsersModule,
