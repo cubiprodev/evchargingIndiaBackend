@@ -1,0 +1,46 @@
+---
+description: Always commit and push backend API changes to GitHub after editing the API
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Deploy API Changes to GitHub
+
+When you modify anything under `backend/` (controllers, services, DTOs, entities, config, docker-compose, `.env.example`), **always deploy to GitHub** before finishing the task.
+
+## Remote
+
+- Repo: `https://github.com/cubiprodev/evchargingIndiaBackend.git`
+- Branch: `main`
+
+## Workflow
+
+1. Run `git status` and `git diff` in `backend/`
+2. Stage only safe files — **never** commit `.env`, secrets, or `firebase-service-account.json`
+3. Write a concise commit message focused on **why**
+4. Commit and push:
+
+```bash
+cd backend
+git add <relevant-files>
+git commit -m "$(cat <<'EOF'
+Your message here.
+EOF
+)"
+git push origin main
+```
+
+5. Confirm push succeeded and share the commit hash or repo link with the user
+
+## Do not skip push when
+
+- Auth, routes, or DTOs changed
+- Database entities or migrations changed
+- `.env.example` or `docker-compose.yml` changed
+- New dependencies added to `package.json`
+
+## Never commit
+
+- `.env` (real SMTP passwords, API keys, JWT secrets)
+- `node_modules/`, `dist/`
+- `firebase-service-account.json`
